@@ -20,3 +20,6 @@ huggingface-hub>=0.24.0       # GPT-OSS-120B and other HF models
 
 # ── MCP (Model Context Protocol) ──────────────────────────────────────────────
 mcp[cli]>=1.0.0               # FastMCP server + MCP client
+
+# ── File imports ──────────────────────────────────────────────────────────────
+openpyxl>=3.1.0               # Excel (.xlsx) import support

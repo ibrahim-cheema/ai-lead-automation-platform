@@ -3,10 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import {
-  Sparkles, ArrowRight, Mail, MessageSquare, Clock, TrendingUp,
+  ArrowRight, Mail, MessageSquare, Clock, TrendingUp,
   CheckCircle, Building2, User, FileText, Copy, Check, Zap,
-  Shield, Layers, Database, Brain, Target, GitMerge, Menu, X,
-  ChevronRight
+  Shield, Layers, Database, BarChart2, Target, GitMerge, Menu, X,
+  ChevronRight, Send
 } from "lucide-react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
@@ -67,11 +67,11 @@ export default function Home() {
       <header className="sticky top-0 z-50 backdrop-blur-md bg-white/90 border-b border-gray-200 px-6 py-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2.5">
-            <div className="bg-gradient-to-tr from-indigo-500 to-purple-500 p-2 rounded-lg text-white shadow-md shadow-indigo-200">
-              <Sparkles className="h-5 w-5" />
+            <div className="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center shadow-sm shrink-0">
+              <span className="text-white font-extrabold text-sm tracking-tight">LN</span>
             </div>
-            <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-gray-900 via-gray-800 to-indigo-700 bg-clip-text text-transparent">
-              LeadNova AI
+            <span className="text-xl font-bold tracking-tight text-gray-900">
+              LeadNova
             </span>
           </div>
 
@@ -152,7 +152,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto text-center relative z-10">
           <div className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-200 rounded-full px-4 py-1.5 text-xs text-indigo-600 font-semibold mb-7 shadow-sm">
             <Zap className="h-3 w-3 text-indigo-500" />
-            Next-Gen AI Sales Lead Automation · Trusted by 500+ teams
+            Smart Lead Management Platform · Trusted by 500+ teams
           </div>
 
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 leading-[1.06]">
@@ -166,7 +166,7 @@ export default function Home() {
           </h1>
 
           <p className="text-base md:text-lg text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Stop losing leads to slow follow-ups. LeadNova AI captures inbound inquiries, scores their potential
+            Stop losing leads to slow follow-ups. LeadNova captures inbound inquiries, scores their potential
             instantly, and generates personalized outreach campaigns in under 5 seconds.
           </p>
 
@@ -175,7 +175,7 @@ export default function Home() {
               href="#interactive-demo"
               className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg shadow-indigo-300/40 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
             >
-              <Sparkles className="h-4 w-4" />
+              <ArrowRight className="h-4 w-4" />
               Try Live Demo
             </a>
             <a
@@ -241,9 +241,9 @@ export default function Home() {
                 icon: <Target className="h-6 w-6" />, color: "indigo"
               },
               {
-                step: "02", title: "AI Analysis",
-                description: "Our AI engine scores the lead Hot, Warm, or Cold based on intent signals, role, and message depth.",
-                icon: <Brain className="h-6 w-6" />, color: "purple"
+                step: "02", title: "Smart Analysis",
+                description: "Scores each lead Hot, Warm, or Cold based on intent signals, role, company, and message depth.",
+                icon: <BarChart2 className="h-6 w-6" />, color: "purple"
               },
               {
                 step: "03", title: "Outreach Ready",
@@ -278,7 +278,7 @@ export default function Home() {
           <div className="text-center mb-16">
             <div className="text-xs text-indigo-600 font-semibold uppercase tracking-widest mb-3">Key Features</div>
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">Powerful Features To Drive Growth</h2>
-            <p className="text-gray-500 max-w-xl mx-auto">Our AI engine handles the heavy lifting, turning cold form entries into highly-qualified pipeline opportunities.</p>
+            <p className="text-gray-500 max-w-xl mx-auto">Our platform handles the heavy lifting, turning cold form entries into highly-qualified pipeline opportunities.</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
@@ -430,12 +430,12 @@ export default function Home() {
                   {loading ? (
                     <>
                       <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Processing AI analysis...
+                      Processing your request...
                     </>
                   ) : (
                     <>
-                      <Sparkles className="h-5 w-5" />
-                      Get AI Consultation
+                      <Send className="h-5 w-5" />
+                      Get Consultation
                     </>
                   )}
                 </button>
@@ -447,12 +447,12 @@ export default function Home() {
                     <CheckCircle className="h-7 w-7" />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">Lead Captured Successfully!</h3>
-                  <p className="text-gray-500 text-sm">Real-time AI output generated for this lead.</p>
+                  <p className="text-gray-500 text-sm">Response generated instantly for this lead.</p>
                 </div>
 
                 <div className="grid sm:grid-cols-3 gap-4">
                   <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 flex flex-col items-center justify-center gap-3">
-                    <span className="text-[10px] uppercase tracking-wider text-gray-400 font-bold">AI Lead Score</span>
+                    <span className="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Lead Score</span>
                     <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${
                       successData.lead_score === "Hot"
                         ? "bg-rose-50 border border-rose-200 text-rose-600"
@@ -464,7 +464,7 @@ export default function Home() {
                     </span>
                   </div>
                   <div className="sm:col-span-2 bg-gray-50 border border-gray-200 rounded-xl p-5">
-                    <span className="text-[10px] uppercase tracking-wider text-gray-400 font-bold block mb-2">Smart AI Summary</span>
+                    <span className="text-[10px] uppercase tracking-wider text-gray-400 font-bold block mb-2">Smart Summary</span>
                     <p className="text-sm text-gray-700 italic leading-relaxed">{successData.summary}</p>
                   </div>
                 </div>
@@ -552,7 +552,7 @@ export default function Home() {
               href="#interactive-demo"
               className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 font-semibold rounded-xl border border-gray-300 hover:border-gray-400 transition-all shadow-sm"
             >
-              <Sparkles className="h-5 w-5 text-indigo-500" />
+              <ChevronRight className="h-5 w-5 text-indigo-500" />
               Try Demo First
             </a>
           </div>
@@ -563,12 +563,12 @@ export default function Home() {
       <footer className="border-t border-gray-200 bg-gray-50 py-10 px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2.5">
-            <div className="bg-gradient-to-tr from-indigo-500 to-purple-500 p-1.5 rounded-lg text-white shadow-sm">
-              <Sparkles className="h-4 w-4" />
+            <div className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center shrink-0">
+              <span className="text-white font-extrabold text-xs">LN</span>
             </div>
-            <span className="font-bold text-gray-700 text-sm">LeadNova AI</span>
+            <span className="font-bold text-gray-700 text-sm">LeadNova</span>
           </div>
-          <p className="text-xs text-gray-400">© 2026 LeadNova AI. All rights reserved.</p>
+          <p className="text-xs text-gray-400">© 2026 LeadNova. All rights reserved.</p>
           <div className="flex gap-6 text-xs text-gray-400">
             <a href="#features" className="hover:text-gray-700 transition-colors">Features</a>
             <a href="#how-it-works" className="hover:text-gray-700 transition-colors">How It Works</a>

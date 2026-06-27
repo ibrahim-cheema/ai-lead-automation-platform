@@ -1,1 +1,32 @@
- 
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Node
+node_modules/
+.next/
+.turbo/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

@@ -1,7 +1,11 @@
 import asyncio
+import csv
+import io
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+import openpyxl
+
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
@@ -15,6 +19,63 @@ from services.lead_processor import process_lead
 
 log    = get_logger(__name__)
 router = APIRouter(prefix="/api/v1", tags=["leads"])
+
+# ── CSV column detection ──────────────────────────────────────────────────────
+
+_COLUMN_ALIASES: dict[str, list[str]] = {
+    "name":       ["name", "full_name", "fullname", "contact", "contact_name", "customer"],
+    "first_name": ["first_name", "firstname", "first"],
+    "last_name":  ["last_name", "lastname", "last", "surname"],
+    "email":      ["email", "email_address", "e_mail", "mail"],
+    "company":    ["company", "organization", "organisation", "org", "company_name", "business", "account"],
+    "role":       ["role", "title", "job_title", "position", "designation", "job"],
+    "message":    ["message", "notes", "note", "description", "requirements", "inquiry", "enquiry", "details"],
+    "source":     ["source", "lead_source", "channel", "origin"],
+}
+
+def _norm(s: str) -> str:
+    return s.strip().lower().replace(" ", "_").replace("-", "_")
+
+def _detect_columns(headers: list[str]) -> dict[str, str]:
+    col_map: dict[str, str] = {}
+    for h in headers:
+        key = _norm(h)
+        for field, aliases in _COLUMN_ALIASES.items():
+            if field not in col_map and key in aliases:
+                col_map[field] = h
+                break
+    return col_map
+
+def _get_col(row: dict, col_map: dict[str, str], field: str, default: str = "") -> str:
+    header = col_map.get(field)
+    return str(row[header]).strip() if header and header in row else default
+
+
+def _parse_xlsx(raw: bytes) -> tuple[list[str], list[dict]]:
+    wb   = openpyxl.load_workbook(io.BytesIO(raw), read_only=True, data_only=True)
+    ws   = wb.active
+    rows = list(ws.iter_rows(values_only=True))
+    wb.close()
+    if not rows:
+        return [], []
+    headers = [str(c).strip() if c is not None else "" for c in rows[0]]
+    data    = [
+        {headers[i]: str(cell).strip() if cell is not None else ""
+         for i, cell in enumerate(row) if i < len(headers)}
+        for row in rows[1:]
+    ]
+    return headers, data
+
+
+def _parse_csv(raw: bytes) -> tuple[list[str], list[dict]]:
+    try:
+        text = raw.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        text = raw.decode("latin-1")
+    reader  = csv.DictReader(io.StringIO(text))
+    headers = list(reader.fieldnames or [])
+    data    = list(reader)
+    return headers, data
 
 VALID_SCORES   = {"Hot", "Warm", "Cold"}
 VALID_STATUSES = {s.value for s in LeadStatus}
@@ -128,6 +189,74 @@ def list_leads(
     leads = query.order_by(DBLead.created_at.desc()).offset(offset).limit(limit).all()
     log.info("GET /api/v1/leads — %d results (search=%s score=%s status=%s)", len(leads), search, score, status_filter)
     return leads
+
+
+# ── POST /api/v1/leads/import-csv ─────────────────────────────────────────────
+
+@router.post(
+    "/leads/import-csv",
+    summary="Bulk-import leads from an uploaded CSV or Excel (.xlsx) file",
+)
+async def import_csv_leads(
+    file: UploadFile = File(...),
+    default_source: str = Query("csv_import", description="Fallback source tag when file has no source column"),
+    db: Session = Depends(get_db),
+):
+    fname = (file.filename or "").lower()
+    if not (fname.endswith(".csv") or fname.endswith(".xlsx")):
+        raise HTTPException(status_code=400, detail="Only .csv and .xlsx files are accepted.")
+
+    raw = await file.read()
+
+    if fname.endswith(".xlsx"):
+        headers, rows = _parse_xlsx(raw)
+    else:
+        headers, rows = _parse_csv(raw)
+
+    col_map = _detect_columns(headers)
+
+    if "name" not in col_map and "first_name" not in col_map and "last_name" not in col_map:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Could not detect a Name column in: {headers}",
+        )
+
+    imported, skipped = 0, 0
+    errors: list[dict] = []
+
+    for row_num, row in enumerate(rows, start=2):
+        try:
+            name = _get_col(row, col_map, "name")
+            if not name:
+                first = _get_col(row, col_map, "first_name")
+                last  = _get_col(row, col_map, "last_name")
+                name  = f"{first} {last}".strip()
+            if not name:
+                skipped += 1
+                continue
+
+            req = LeadRequest(
+                name    = name,
+                email   = _get_col(row, col_map, "email") or None,
+                company = _get_col(row, col_map, "company"),
+                role    = _get_col(row, col_map, "role"),
+                message = _get_col(row, col_map, "message"),
+                source  = _get_col(row, col_map, "source") or default_source,
+            )
+            process_lead(req, db)
+            imported += 1
+        except Exception as exc:
+            errors.append({"row": row_num, "error": str(exc)})
+            if len(errors) >= 20:
+                break
+
+    log.info("File import: %d imported, %d skipped, %d errors", imported, skipped, len(errors))
+    return {
+        "imported":          imported,
+        "skipped":           skipped,
+        "errors":            errors,
+        "detected_columns":  col_map,
+    }
 
 
 # ── GET /api/v1/leads/{id} ────────────────────────────────────────────────────
